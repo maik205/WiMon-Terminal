@@ -1,3 +1,4 @@
+#include <stdint.h>
 /**
   COPYRIGHT - 2025 - THE WIMON TEAM
   Contains references to code written by Rui Santos & Sara Santos - Random Nerd Tutorials
@@ -12,10 +13,10 @@ lv_obj_t* spo2_label_btn;
 XPT2046_Touchscreen touch(TOUCH_CS, TOUCH_IRQ);
 SPIClass spi(VSPI);
 
-int t_x, t_y, t_pres;
+uint16_t t_x, t_y, t_pres;
 lv_display_t* lv_screen;
 
-
+uint16_t lv_draw_buf_sz = 
 
 // Info
 String LV_VERSION_STRING = String("LVGL Library Version: ") + lv_version_major() + "." + lv_version_minor() + "." + lv_version_patch();
