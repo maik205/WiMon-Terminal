@@ -77,4 +77,6 @@
 #define PWM_Res 8
 #define PWM_Freq 1000
 
+#define TFT_ROTATION LV_DISPLAY_ROTATION_270
+
 #define TERMINAL_TIMEOUT_MS 10000

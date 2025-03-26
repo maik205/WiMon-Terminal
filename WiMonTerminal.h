@@ -7,7 +7,7 @@
 #include <RF24.h>
 #include "screen.h"
 #include <cppQueue.h>
-
+#include "ui.h"
 class WiMonTerminal
 {
 private:
@@ -54,7 +54,6 @@ private:
     void wm_on_chann_mid_press();
     void wm_on_chann_down_press();
     void wm_tick_buttons();
-    void wm_draw_screen();
 
     // Google Sheet & Apps script
     void wm_fetch_patient_info(); // fetch data of PatientInfo from google sheet by his/her ID

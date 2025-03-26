@@ -9,7 +9,7 @@
 
 // Constructor with initialization list
 RF24 radio(RF_CE, RF_CS);
-SPIClass* hspi = nullptr;
+SPIClass *hspi = nullptr;
 WiMonTerminal::WiMonTerminal()
   : packetHistory(sizeof(WiMonPacket), 5, FIFO) {
   wmAliveTimeS = 0;
@@ -91,6 +91,7 @@ void WiMonTerminal::wm_ping_sensor() {
     radio.read(&ack, sizeof(ack));
     wmSensorMac = ack.mac;
     wmSensorState = PAIRED;
+    lv_label_set_text(wm_sensorStatus, "#00ff00 OK");
   }
 }
 
@@ -102,6 +103,10 @@ void WiMonTerminal::wm_tick_data() {
     if (pk.MAC == wmSensorMac) {
       packetHistory.push(&pk);
       lastRecievedPacket = millis();
+      // Render recieved data
+      lv_label_set_text_fmt(wm_bpmLabel, "%d", pk.hr);
+      lv_label_set_text_fmt(wm_spo2Label, "%d", pk.spo2);
+      lv_label_set_text_fmt(wm_tempLabel, "%.2f", pk.temp_C);
     }
   }
   if (millis() - lastRecievedPacket >= TERMINAL_TIMEOUT_MS) {
