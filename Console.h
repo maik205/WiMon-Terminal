@@ -1,12 +1,13 @@
 
 #include <Blynk/BlynkConsole.h>
 
-extern "C" {
-  #include "esp_partition.h"
-  #include "esp_ota_ops.h"
+extern "C"
+{
+#include "esp_partition.h"
+#include "esp_ota_ops.h"
 }
 
-BlynkConsole    edgentConsole;
+BlynkConsole edgentConsole;
 
 void console_init()
 {
@@ -16,32 +17,32 @@ void console_init()
 
   edgentConsole.print("\n>");
 
-  edgentConsole.addCommand("reboot", []() {
+  edgentConsole.addCommand("reboot", []()
+                           {
     edgentConsole.print(R"json({"status":"OK","msg":"rebooting wifi module"})json" "\n");
     delay(100);
-    restartMCU();
-  });
+    restartMCU(); });
 
-  edgentConsole.addCommand("config", [](int argc, const char** argv) {
+  edgentConsole.addCommand("config", [](int argc, const char **argv)
+                           {
     if (argc < 1 || 0 == strcmp(argv[0], "start")) {
       BlynkState::set(MODE_WAIT_CONFIG);
     } else if (0 == strcmp(argv[0], "erase")) {
       BlynkState::set(MODE_RESET_CONFIG);
-    }
-  });
+    } });
 
-  edgentConsole.addCommand("devinfo", []() {
-    edgentConsole.printf(
-        R"json({"name":"%s","board":"%s","tmpl_id":"%s","fw_type":"%s","fw_ver":"%s"})json" "\n",
-        getWiFiName().c_str(),
-        BLYNK_TEMPLATE_NAME,
-        BLYNK_TEMPLATE_ID,
-        BLYNK_FIRMWARE_TYPE,
-        BLYNK_FIRMWARE_VERSION
-    );
-  });
+  edgentConsole.addCommand("devinfo", []()
+                           { edgentConsole.printf(
+                                 R"json({"name":"%s","board":"%s","tmpl_id":"%s","fw_type":"%s","fw_ver":"%s"})json"
+                                 "\n",
+                                 getWiFiName().c_str(),
+                                 BLYNK_TEMPLATE_NAME,
+                                 BLYNK_TEMPLATE_ID,
+                                 BLYNK_FIRMWARE_TYPE,
+                                 BLYNK_FIRMWARE_VERSION); });
 
-  edgentConsole.addCommand("connect", [](int argc, const char** argv) {
+  edgentConsole.addCommand("connect", [](int argc, const char **argv)
+                           {
     if (argc < 2) {
       edgentConsole.print(R"json({"status":"error","msg":"invalid arguments. expected: <auth> <ssid> <pass>"})json" "\n");
       return;
@@ -62,10 +63,10 @@ void console_init()
     CopyString(pass, configStore.wifiPass);
     CopyString(auth, configStore.cloudToken);
 
-    BlynkState::set(MODE_SWITCH_TO_STA);
-  });
+    BlynkState::set(MODE_SWITCH_TO_STA); });
 
-  edgentConsole.addCommand("wifi", [](int argc, const char* argv[]) {
+  edgentConsole.addCommand("wifi", [](int argc, const char *argv[])
+                           {
     if (argc < 1 || 0 == strcmp(argv[0], "show")) {
       edgentConsole.printf(
           "mac:%s ip:%s (%s [%s] %ddBm)\n",
@@ -88,10 +89,10 @@ void console_init()
         );
       }
       WiFi.scanDelete();
-    }
-  });
+    } });
 
-  edgentConsole.addCommand("firmware", [](int argc, const char** argv) {
+  edgentConsole.addCommand("firmware", [](int argc, const char **argv)
+                           {
     if (argc < 1 || 0 == strcmp(argv[0], "info")) {
       unsigned sketchSize = ESP.getSketchSize();
 
@@ -113,35 +114,37 @@ void console_init()
       } else {
         edgentConsole.print(R"json({"status":"error"})json" "\n");
       }
-    }
-  });
+    } });
 
-  edgentConsole.addCommand("status", [](int argc, const char** argv) {
-    const int64_t t = esp_timer_get_time() / 1000000;
-    unsigned secs = t % BLYNK_SECS_PER_MIN;
-    unsigned mins = (t / BLYNK_SECS_PER_MIN) % BLYNK_SECS_PER_MIN;
-    unsigned hrs  = (t % BLYNK_SECS_PER_DAY) / BLYNK_SECS_PER_HOUR;
-    unsigned days = t / BLYNK_SECS_PER_DAY;
+  edgentConsole.addCommand("status", [](int argc, const char **argv)
+                           {
+                             const int64_t t = esp_timer_get_time() / 1000000;
+                             unsigned secs = t % BLYNK_SECS_PER_MIN;
+                             unsigned mins = (t / BLYNK_SECS_PER_MIN) % BLYNK_SECS_PER_MIN;
+                             unsigned hrs = (t % BLYNK_SECS_PER_DAY) / BLYNK_SECS_PER_HOUR;
+                             unsigned days = t / BLYNK_SECS_PER_DAY;
 
-    edgentConsole.printf(" Uptime:          %dd %dh %dm %ds\n", days, hrs, mins, secs);
-    edgentConsole.printf(" Chip:            %s rev %d\n", ESP.getChipModel(), ESP.getChipRevision());
-    edgentConsole.printf(" Flash:           %dK\n",       ESP.getFlashChipSize() / 1024);
-    edgentConsole.printf(" Stack unused:    %d\n",        uxTaskGetStackHighWaterMark(NULL));
-    edgentConsole.printf(" Heap free:       %d / %d\n",   ESP.getFreeHeap(), ESP.getHeapSize());
-    edgentConsole.printf("      max alloc:  %d\n",        ESP.getMaxAllocHeap());
-    edgentConsole.printf("      min free:   %d\n",        ESP.getMinFreeHeap());
-    if (ESP.getPsramSize()) {
-      edgentConsole.printf(" PSRAM free:      %d / %d\n", ESP.getFreePsram(), ESP.getPsramSize());
-    }
+                             edgentConsole.printf(" Uptime:          %dd %dh %dm %ds\n", days, hrs, mins, secs);
+                             edgentConsole.printf(" Chip:            %s rev %d\n", ESP.getChipModel(), ESP.getChipRevision());
+                             edgentConsole.printf(" Flash:           %dK\n", ESP.getFlashChipSize() / 1024);
+                             edgentConsole.printf(" Stack unused:    %d\n", uxTaskGetStackHighWaterMark(NULL));
+                             edgentConsole.printf(" Heap free:       %d / %d\n", ESP.getFreeHeap(), ESP.getHeapSize());
+                             edgentConsole.printf("      max alloc:  %d\n", ESP.getMaxAllocHeap());
+                             edgentConsole.printf("      min free:   %d\n", ESP.getMinFreeHeap());
+                             if (ESP.getPsramSize())
+                             {
+                               edgentConsole.printf(" PSRAM free:      %d / %d\n", ESP.getFreePsram(), ESP.getPsramSize());
+                             }
 #ifdef BLYNK_FS
-    uint32_t fs_total = BLYNK_FS.totalBytes();
-    edgentConsole.printf(" FS free:         %d / %d\n",   (fs_total-BLYNK_FS.usedBytes()), fs_total);
+                             uint32_t fs_total = BLYNK_FS.totalBytes();
+                             edgentConsole.printf(" FS free:         %d / %d\n", (fs_total - BLYNK_FS.usedBytes()), fs_total);
 #endif
-  });
+                           });
 
 #ifdef BLYNK_FS
 
-  edgentConsole.addCommand("ls", [](int argc, const char** argv) {
+  edgentConsole.addCommand("ls", [](int argc, const char **argv)
+                           {
     const char* path = (argc < 1) ? "/" : argv[0];
     File rootDir = BLYNK_FS.open(path);
     while (File f = rootDir.openNextFile()) {
@@ -160,10 +163,10 @@ void console_init()
       edgentConsole.printf("%8d %-24s %s\n",
                             f.size(), fn.c_str(),
                             md5str.substring(0,8).c_str());
-    }
-  });
+    } });
 
-  edgentConsole.addCommand("rm", [](int argc, const char** argv) {
+  edgentConsole.addCommand("rm", [](int argc, const char **argv)
+                           {
     if (argc < 1) return;
 
     for (int i=0; i<argc; i++) {
@@ -173,18 +176,18 @@ void console_init()
       } else {
         edgentConsole.printf("Removing %s failed\n", fn);
       }
-    }
-  });
+    } });
 
-  edgentConsole.addCommand("mv", [](int argc, const char** argv) {
+  edgentConsole.addCommand("mv", [](int argc, const char **argv)
+                           {
     if (argc != 2) return;
 
     if (!BLYNK_FS.rename(argv[0], argv[1])) {
       edgentConsole.print("Rename failed\n");
-    }
-  });
+    } });
 
-  edgentConsole.addCommand("cat", [](int argc, const char** argv) {
+  edgentConsole.addCommand("cat", [](int argc, const char **argv)
+                           {
     if (argc != 1) return;
 
     if (!BLYNK_FS.exists(argv[0])) {
@@ -199,10 +202,10 @@ void console_init()
       edgentConsole.print("\n");
     } else {
       edgentConsole.print("Cannot open file\n");
-    }
-  });
+    } });
 
-  edgentConsole.addCommand("echo", [](int argc, const char** argv) {
+  edgentConsole.addCommand("echo", [](int argc, const char **argv)
+                           {
     if (argc != 2) return;
 
     if (File f = BLYNK_FS.open(argv[1], FILE_WRITE)) {
@@ -211,15 +214,13 @@ void console_init()
       }
     } else {
       edgentConsole.print("Cannot open file\n");
-    }
-  });
+    } });
 
 #endif
-
 }
 
-BLYNK_WRITE(InternalPinDBG) {
+BLYNK_WRITE(InternalPinDBG)
+{
   String cmd = String(param.asStr()) + "\n";
-  edgentConsole.runCommand((char*)cmd.c_str());
+  edgentConsole.runCommand((char *)cmd.c_str());
 }
-

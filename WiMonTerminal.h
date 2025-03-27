@@ -8,16 +8,24 @@
 #include "screen.h"
 #include <cppQueue.h>
 #include "ui.h"
-class WiMonTerminal
+#include "BlynkEdgent.h"
+class WiMonTerminal : public BlynkEdgent
 {
 private:
     SensorConnectionState wmSensorState;
     TerminalStatus wmTerminalStatus;
     StatusLEDColor wmLedColor;
+
     uint64_t wmSensorMac;
     uint32_t wmAliveTimeS;
     uint16_t lastTickMs;
+
     uint8_t channelNum;
+    String docMess = "";
+    String patientID = "";
+    uint8_t spo2 = 0;
+    uint16_t hr = 0;
+    uint16_t temp_C = 0;
 
     cppQueue packetHistory;
     uint16_t lastRecievedPacket;
@@ -38,7 +46,6 @@ private:
     bool isChannMidBtnPressed;
     int midBtnLastPressedTime;
 
-    PatientInfo patientInfo;
     ValueStatus spo2Status;
     ValueStatus tempStatus;
     ValueStatus hrStatus;
@@ -56,7 +63,10 @@ private:
     void wm_tick_buttons();
 
     // Google Sheet & Apps script
-    void wm_fetch_patient_info(); // fetch data of PatientInfo from google sheet by his/her ID
+    void wm_fetch_patient_name(); // fetch data of patient name from google sheet by his/her ID
+
+    // override the method from BlynkEdgent
+    void bl_write_data() override;
 
 public:
     WiMonTerminal();

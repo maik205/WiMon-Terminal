@@ -1,11 +1,11 @@
 #pragma once
 // Name: <Noun>_<Specifier>
 /*
-  Pins and various warning accessories 
+  Pins and various warning accessories
 */
 
 #define TOUCH_IRQ -1
-#define TOUCH_CS -1  // Chip select pin (T_CS) of touch screen
+#define TOUCH_CS -1 // Chip select pin (T_CS) of touch screen
 // Not using touch due to broken touch screen
 // Screen
 // Common pins redeclared from TFT_eSPI lib.
@@ -13,8 +13,8 @@
 #define TFT_MOSI 23
 #define TFT_SCLK 18
 #define TFT_CS 17
-#define TFT_DC 16   // Data Command control pin
-#define TFT_RST -1  // RST is connected to ESP32 EN (RST pin)
+#define TFT_DC 16  // Data Command control pin
+#define TFT_RST -1 // RST is connected to ESP32 EN (RST pin)
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 480
 #define FONT_SIZE 2
@@ -28,7 +28,6 @@
 #define LED_G_Ch 1
 #define LED_B_Ch 2
 
-
 // Channel Buttons
 #define BTN_CHAN_UP 25
 #define BTN_MID 33
@@ -41,7 +40,6 @@
 #define RF_CE 21
 #define RF_CS 15
 
-
 /*
   Blynk IOT Configuration
 */
@@ -53,6 +51,14 @@
 
 #define USE_ESP32_DEV_MODULE
 
+// define blynk virtual pins to store data to cloud
+#define SPO2_VP
+#define HR_VP
+#define TEMP_VP
+#define CHANN_NUM_VP
+// define blynk virtual pins to fetch data from cloud
+#define PATIENT_ID_VP
+#define DOC_MESS_VP
 
 // Debouncing
 #define DEBOUNCE_MS 500
@@ -60,7 +66,6 @@
 // Acknowledgement flow
 #define ACK_TIMEOUT 1000
 #define RETRIES_LIMIT
-
 
 #define TEMP_MIN 36.5
 #define TEMP_MAX 38.0
@@ -80,3 +85,9 @@
 #define TFT_ROTATION LV_DISPLAY_ROTATION_270
 
 #define TERMINAL_TIMEOUT_MS 10000
+
+/**
+ * Google Sheet record and fetch data
+ */
+#define ENDPOINT_API_URL ""
+#define   
