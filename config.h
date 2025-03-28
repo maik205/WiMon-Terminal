@@ -45,6 +45,8 @@
 */
 #define BLYNK_TEMPLATE_ID "TMPL6Btwco48K"
 #define BLYNK_TEMPLATE_NAME "WiMonTerminal"
+#define BLYNK_FIRMWARE_TYPE "asdf"
+#define BLYNK_FIRMWARE_VERSION        "0.1.0"
 
 #define BLYNK_PRINT Serial
 #define APP_DEBUG
@@ -52,13 +54,14 @@
 #define USE_ESP32_DEV_MODULE
 
 // define blynk virtual pins to store data to cloud
-#define SPO2_VP
-#define HR_VP
-#define TEMP_VP
-#define CHANN_NUM_VP
+#define SPO2_VP V0
+#define TEMP_VP V1
+#define HR_VP V2
 // define blynk virtual pins to fetch data from cloud
-#define PATIENT_ID_VP
-#define DOC_MESS_VP
+#define PATIENT_ID_VP V4
+#define DOC_MESS_VP V5
+// 
+#define BLYNK_INTERVAL 10000L
 
 // Debouncing
 #define DEBOUNCE_MS 500
@@ -89,5 +92,5 @@
 /**
  * Google Sheet record and fetch data
  */
-#define ENDPOINT_API_URL ""
-#define   
+#define ENDPOINT_API_URL "https://script.google.com/macros/s/AKfycbwRju_1-TZwYdJXdi1UOXc9ZGmH4vR4lpXSgAqG9CFMkDPGmRDuGOGgR3WSXz9sPqdu/exec"
+

@@ -3,6 +3,7 @@
 #include <WebServer.h>
 #include <DNSServer.h>
 #include <Update.h>
+#include "config.h"
 
 #ifndef BLYNK_FS
 

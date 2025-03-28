@@ -1,12 +1,13 @@
-
-extern "C"
-{
+#include <WiFi.h>
+extern "C" {
   void app_loop();
   void restartMCU();
 }
 
 #include "Settings.h"
 #include <BlynkSimpleEsp32_SSL.h>
+#include <WiFi.h>
+#include "config.h"
 
 #if defined(BLYNK_USE_LITTLEFS)
 #include <LittleFS.h>
@@ -36,7 +37,6 @@ extern "C"
 #error "BLYNK_AUTH_TOKEN is assigned automatically when using Blynk.Edgent, please remove it from the configuration"
 #endif
 
-BlynkTimer edgentTimer;
 
 #include "BlynkState.h"
 #include "ConfigStore.h"
@@ -46,10 +46,8 @@ BlynkTimer edgentTimer;
 #include "OTA.h"
 #include "Console.h"
 
-inline void BlynkState::set(State m)
-{
-  if (state != m && m < MODE_MAX_VALUE)
-  {
+inline void BlynkState::set(State m) {
+  if (state != m && m < MODE_MAX_VALUE) {
     DEBUG_PRINT(String(StateStr[state]) + " => " + StateStr[m]);
     state = m;
 
@@ -57,9 +55,9 @@ inline void BlynkState::set(State m)
     // i.e. implement custom indication
   }
 }
+BlynkTimer edgentTimer;
 
-void printDeviceBanner()
-{
+void printDeviceBanner() {
 #ifdef BLYNK_PRINT
   Blynk.printBanner();
   BLYNK_PRINT.println("----------------------------------------------------");
@@ -67,11 +65,9 @@ void printDeviceBanner()
   BLYNK_PRINT.println(getWiFiName());
   BLYNK_PRINT.print(" Firmware:  ");
   BLYNK_PRINT.println(BLYNK_FIRMWARE_VERSION " (build " __DATE__ " " __TIME__ ")");
-  if (configStore.getFlag(CONFIG_FLAG_VALID))
-  {
+  if (configStore.getFlag(CONFIG_FLAG_VALID)) {
     BLYNK_PRINT.print(" Token:     ");
-    BLYNK_PRINT.println(String(configStore.cloudToken).substring(0, 4) +
-                        " - •••• - •••• - ••••");
+    BLYNK_PRINT.println(String(configStore.cloudToken).substring(0, 4) + " - •••• - •••• - ••••");
   }
   BLYNK_PRINT.print(" Platform:  ");
   BLYNK_PRINT.println(String(BLYNK_INFO_DEVICE) + " @ " + ESP.getCpuFreqMHz() + "MHz");
@@ -87,34 +83,26 @@ void printDeviceBanner()
 #endif
 }
 
-void runBlynkWithChecks()
-{
+void runBlynkWithChecks() {
   Blynk.run();
-  if (BlynkState::get() == MODE_RUNNING)
-  {
-    if (!Blynk.connected())
-    {
-      if (WiFi.status() == WL_CONNECTED)
-      {
+  if (BlynkState::get() == MODE_RUNNING) {
+    if (!Blynk.connected()) {
+      if (WiFi.status() == WL_CONNECTED) {
         BlynkState::set(MODE_CONNECTING_CLOUD);
-      }
-      else
-      {
+      } else {
         BlynkState::set(MODE_CONNECTING_NET);
       }
     }
   }
 }
 
-class BlynkEdgent
-{
+class Edgent {
 
 public:
-  void begin()
-  {
+
+  void bl_begin() {
     WiFi.persistent(false);
-    WiFi.enableSTA(true);                          // Needed to get MAC
-    edgentTimer.setInterval(1000L, bl_write_data); // i dunno where to put this in
+    WiFi.enableSTA(true);  // Needed to get MAC
 #if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 0, 0))
     WiFi.setMinSecurity(WIFI_AUTH_WEP);
 #endif
@@ -128,70 +116,57 @@ public:
     printDeviceBanner();
     console_init();
 
-    if (configStore.getFlag(CONFIG_FLAG_VALID))
-    {
+    if (configStore.getFlag(CONFIG_FLAG_VALID)) {
       BlynkState::set(MODE_CONNECTING_NET);
-    }
-    else if (config_load_blnkopt())
-    {
+    } else if (config_load_blnkopt()) {
       DEBUG_PRINT("Firmware is preprovisioned");
       BlynkState::set(MODE_CONNECTING_NET);
-    }
-    else
-    {
+    } else {
       BlynkState::set(MODE_WAIT_CONFIG);
     }
 
-    if (!String(BLYNK_TEMPLATE_ID).startsWith("TMPL") ||
-        !strlen(BLYNK_TEMPLATE_NAME))
-    {
+    if (!String(BLYNK_TEMPLATE_ID).startsWith("TMPL") || !strlen(BLYNK_TEMPLATE_NAME)) {
       DEBUG_PRINT("Invalid configuration of TEMPLATE_ID / TEMPLATE_NAME");
-      while (true)
-      {
+      while (true) {
         delay(100);
       }
     }
   }
 
-  void run()
-  {
+  void bl_run() {
     app_loop();
-    switch (BlynkState::get())
-    {
-    case MODE_WAIT_CONFIG:
-    case MODE_CONFIGURING:
-      enterConfigMode();
-      break;
-    case MODE_CONNECTING_NET:
-      enterConnectNet();
-      break;
-    case MODE_CONNECTING_CLOUD:
-      enterConnectCloud();
-      break;
-    case MODE_RUNNING:
-      runBlynkWithChecks();
-      break;
-    case MODE_OTA_UPGRADE:
-      enterOTA();
-      break;
-    case MODE_SWITCH_TO_STA:
-      enterSwitchToSTA();
-      break;
-    case MODE_RESET_CONFIG:
-      enterResetConfig();
-      break;
-    default:
-      enterError();
-      break;
+    switch (BlynkState::get()) {
+      case MODE_WAIT_CONFIG:
+      case MODE_CONFIGURING:
+        enterConfigMode();
+        break;
+      case MODE_CONNECTING_NET:
+        enterConnectNet();
+        break;
+      case MODE_CONNECTING_CLOUD:
+        enterConnectCloud();
+        break;
+      case MODE_RUNNING:
+        runBlynkWithChecks();
+        break;
+      case MODE_OTA_UPGRADE:
+        enterOTA();
+        break;
+      case MODE_SWITCH_TO_STA:
+        enterSwitchToSTA();
+        break;
+      case MODE_RESET_CONFIG:
+        enterResetConfig();
+        break;
+      default:
+        enterError();
+        break;
     }
   }
 
-private:
-  void app_loop()
-  {
-    edgentTimer.run();
-    edgentConsole.run();
-  }
+} BlynkEdgent;
 
-  virtual void bl_write_data();
-};
+void app_loop() {
+  edgentTimer.run();
+  edgentConsole.run();
+}

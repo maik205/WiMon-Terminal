@@ -4,68 +4,70 @@
 #include <RF24.h>
 #include <cfloat>
 #include <SPI.h>
+#include <config.h>
 
+// #include "BlynkEdgent.h"
 #include "WiMonTerminal.h"
+
 
 // Constructor with initialization list
 RF24 radio(RF_CE, RF_CS);
 SPIClass *hspi = nullptr;
+
+
+// These are inits of some var to interact with Blynk Cloud
+String WiMonTerminal::docMess = "Example: please take care of patient";
+String WiMonTerminal::patientID = "Example: P0001";
+uint8_t WiMonTerminal::spo2 = 0;
+uint16_t WiMonTerminal::hr = 0;
+uint16_t WiMonTerminal::temp_C = 0;
+
+
 WiMonTerminal::WiMonTerminal()
-    : packetHistory(sizeof(WiMonPacket), 5, FIFO)
-{
+  : packetHistory(sizeof(WiMonPacket), 5, FIFO) {
   wmAliveTimeS = 0;
   lastSentRequest = 0;
   hspi = new SPIClass(HSPI);
   hspi->begin();
   wmLedColor = YELLOW;
 }
-double wm_parse_packet_hr(WiMonPacket *pk)
-{
+double wm_parse_packet_hr(WiMonPacket *pk) {
   return ((double)pk->hr) / 100;
 }
-double wm_parse_packet_temp(WiMonPacket *pk)
-{
+double wm_parse_packet_temp(WiMonPacket *pk) {
   return ((double)pk->temp_C) / 1000;
 }
-void WiMonTerminal::init()
-{
-  BlynkEdgent::begin(); // start blynk edgent
-
+void WiMonTerminal::init() {
+  // BlynkEdgent.bl_begin();  // start blynk edgent
+  // edgentTimer.setInterval(BLYNK_INTERVAL, WiMonTerminal::bl_write_data);
   wm_init_pins();
   wm_init_radio();
   wm_init_screen();
 }
 
-void WiMonTerminal::tick()
-{
-  if (millis() - lastTickMs >= 1000)
-  {
+void WiMonTerminal::tick() {
+  if (millis() - lastTickMs >= 1000) {
     wmAliveTimeS++;
     lastTickMs = millis();
   }
 
-  BlynkEdgent::run();
+  BlynkEdgent.bl_run();
 
   wm_tick_buttons();
   wm_tick_led();
 
-  if (wmSensorState == UNPAIRED)
-  {
+  if (wmSensorState == UNPAIRED) {
     wm_ping_sensor();
-  }
-  else if (wmSensorState == PAIRED)
-  {
+  } else if (wmSensorState == PAIRED) {
     wm_tick_data();
-    if (packetHistory.isFull())
-    {
+    if (packetHistory.isFull()) {
       wm_check_data();
     }
   }
   wm_redraw_screen();
 }
 
-void WiMonTerminal::wm_init_pins()
-{
+void WiMonTerminal::wm_init_pins() {
   ledcAttach(LED_R, PWM_Freq, PWM_Res);
   ledcAttach(LED_G, PWM_Freq, PWM_Res);
   ledcAttach(LED_B, PWM_Freq, PWM_Res);
@@ -74,10 +76,8 @@ void WiMonTerminal::wm_init_pins()
   pinMode(BTN_MID, INPUT);
 }
 
-void WiMonTerminal::wm_init_radio()
-{
-  if (!radio.begin(hspi))
-  {
+void WiMonTerminal::wm_init_radio() {
+  if (!radio.begin(hspi)) {
     wmTerminalStatus = RADIO_ERROR;
     Serial.println("Radio dead");
     wmLedColor = RED;
@@ -91,10 +91,8 @@ void WiMonTerminal::wm_init_radio()
   radio.openReadingPipe(1, radioAddresses[0]);
 }
 
-void WiMonTerminal::wm_ping_sensor()
-{
-  if (millis() - lastSentRequest >= ACK_TIMEOUT)
-  {
+void WiMonTerminal::wm_ping_sensor() {
+  if (millis() - lastSentRequest >= ACK_TIMEOUT) {
     Serial.println("Trying to find a sensor...");
     radio.stopListening();
     HandshakePacket pk;
@@ -104,8 +102,7 @@ void WiMonTerminal::wm_ping_sensor()
     radio.startListening();
   }
 
-  if (radio.available())
-  {
+  if (radio.available()) {
     AcknowledgementPacket ack;
     ack.mac = 0;
     radio.read(&ack, sizeof(ack));
@@ -115,15 +112,12 @@ void WiMonTerminal::wm_ping_sensor()
   }
 }
 
-void WiMonTerminal::wm_tick_data()
-{
+void WiMonTerminal::wm_tick_data() {
   radio.startListening();
-  if (radio.available())
-  {
+  if (radio.available()) {
     WiMonPacket pk;
     radio.read(&pk, sizeof(WiMonPacket));
-    if (pk.MAC == wmSensorMac)
-    {
+    if (pk.MAC == wmSensorMac) {
       spo2 = pk.spo2;
       hr = pk.hr;
       temp_C = pk.temp_C;
@@ -135,14 +129,12 @@ void WiMonTerminal::wm_tick_data()
       lv_label_set_text_fmt(wm_tempLabel, "%.2f", pk.temp_C);
     }
   }
-  if (millis() - lastRecievedPacket >= TERMINAL_TIMEOUT_MS)
-  {
+  if (millis() - lastRecievedPacket >= TERMINAL_TIMEOUT_MS) {
     wmSensorState = UNPAIRED;
   }
 }
 
-void WiMonTerminal::wm_check_data()
-{
+void WiMonTerminal::wm_check_data() {
   // Pre calculations
   double sumTemp = 0.0;
   double sumSpO2 = 0.0;
@@ -154,8 +146,7 @@ void WiMonTerminal::wm_check_data()
   double minSpO2 = DBL_MAX;
   double minHR = DBL_MAX;
 
-  for (int i = 0; i < 5; i++)
-  {
+  for (int i = 0; i < 5; i++) {
     WiMonPacket buf;
     packetHistory.peekIdx(&buf, i);
 
@@ -189,63 +180,52 @@ void WiMonTerminal::wm_check_data()
   double meanHR = sumHR / 5.0;
 
   // Destablization flow
-  if (meanTemp > TEMP_MAX || meanTemp < TEMP_MIN)
-  {
+  if (meanTemp > TEMP_MAX || meanTemp < TEMP_MIN) {
     tempStatus = ValueStatus::CRITICAL;
   }
-  if (meanSpO2 < SPO2_MIN)
-  {
+  if (meanSpO2 < SPO2_MIN) {
     spo2Status = ValueStatus::CRITICAL;
   }
-  if (meanHR > HR_MAX || meanHR < HR_MIN)
-  {
+  if (meanHR > HR_MAX || meanHR < HR_MIN) {
     hrStatus = ValueStatus::CRITICAL;
   }
-  if (maxHR - minHR >= HR_MAX_DEV)
-  {
+  if (maxHR - minHR >= HR_MAX_DEV) {
     hrStatus = ValueStatus::CRITICAL;
   }
-  if (maxSpO2 - minSpO2 >= SPO2_MAX_DEV)
-  {
+  if (maxSpO2 - minSpO2 >= SPO2_MAX_DEV) {
     spo2Status = ValueStatus::CRITICAL;
   }
-  if (maxTemp - minTemp >= TEMP_MAX_DEV)
-  {
+  if (maxTemp - minTemp >= TEMP_MAX_DEV) {
     tempStatus = ValueStatus::CRITICAL;
   }
 
   // Stablization flow
   // Stabilization flow
-  if (meanTemp <= TEMP_MAX && meanTemp >= TEMP_MIN && (maxTemp - minTemp) < TEMP_MAX_DEV)
-  {
+  if (meanTemp <= TEMP_MAX && meanTemp >= TEMP_MIN && (maxTemp - minTemp) < TEMP_MAX_DEV) {
     tempStatus = ValueStatus::STABLE;
   }
-  if (meanSpO2 >= SPO2_MIN && (maxSpO2 - minSpO2) < SPO2_MAX_DEV)
-  {
+  if (meanSpO2 >= SPO2_MIN && (maxSpO2 - minSpO2) < SPO2_MAX_DEV) {
     spo2Status = ValueStatus::STABLE;
   }
-  if (meanHR <= HR_MAX && meanHR >= HR_MIN && (maxHR - minHR) < HR_MAX_DEV)
-  {
+  if (meanHR <= HR_MAX && meanHR >= HR_MIN && (maxHR - minHR) < HR_MAX_DEV) {
     hrStatus = ValueStatus::STABLE;
   }
 }
 
-void WiMonTerminal::wm_tick_led()
-{
+void WiMonTerminal::wm_tick_led() {
   // Set RGB values based on the selected color
   int red = 0, green = 0, blue = 0;
-  switch (wmLedColor)
-  {
-  case RED:
-    red = 255;
-    break;
-  case YELLOW:
-    red = 255;
-    green = 255;
-    break;
-  case GREEN:
-    green = 255;
-    break;
+  switch (wmLedColor) {
+    case RED:
+      red = 255;
+      break;
+    case YELLOW:
+      red = 255;
+      green = 255;
+      break;
+    case GREEN:
+      green = 255;
+      break;
   }
 
   // Apply the duty cycle to the respective channels
@@ -254,42 +234,34 @@ void WiMonTerminal::wm_tick_led()
   ledcWrite(LED_B, blue);
 }
 
-void WiMonTerminal::wm_on_chann_up_press()
-{
+void WiMonTerminal::wm_on_chann_up_press() {
   channelNum++;
   wmSensorMac = 0;
   wmSensorState = UNPAIRED;
   Serial.println("Up btn pressed");
 }
 
-void WiMonTerminal::wm_on_chann_mid_press()
-{
+void WiMonTerminal::wm_on_chann_mid_press() {
   // Handle middle button press
   Serial.println("Mid btn pressed");
 }
 
-void WiMonTerminal::wm_on_chann_down_press()
-{
+void WiMonTerminal::wm_on_chann_down_press() {
   channelNum--;
   wmSensorMac = 0;
   wmSensorState = UNPAIRED;
   Serial.println("Down btn pressed");
 }
 
-void WiMonTerminal::wm_tick_buttons()
-{
+void WiMonTerminal::wm_tick_buttons() {
   bool isChannUpBtnCurrentlyPressed = digitalRead(BTN_CHAN_UP) == HIGH;
 
-  if (isChannUpBtnPressed != isChannUpBtnCurrentlyPressed)
-  {
-    if (isChannUpBtnCurrentlyPressed)
-    {
+  if (isChannUpBtnPressed != isChannUpBtnCurrentlyPressed) {
+    if (isChannUpBtnCurrentlyPressed) {
       upBtnLastPressedTime = millis();
       wm_on_chann_up_press();
     }
-  }
-  else if (isChannUpBtnPressed && millis() - upBtnLastPressedTime >= DEBOUNCE_MS)
-  {
+  } else if (isChannUpBtnPressed && millis() - upBtnLastPressedTime >= DEBOUNCE_MS) {
     wm_on_chann_up_press();
     upBtnLastPressedTime = millis();
   }
@@ -298,16 +270,12 @@ void WiMonTerminal::wm_tick_buttons()
   // Handle Channel Down Button
   bool isChannDownCurrentlyPressed = digitalRead(BTN_CHAN_DOWN) == HIGH;
 
-  if (isChannDownBtnPressed != isChannDownCurrentlyPressed)
-  {
-    if (isChannDownCurrentlyPressed)
-    {
+  if (isChannDownBtnPressed != isChannDownCurrentlyPressed) {
+    if (isChannDownCurrentlyPressed) {
       downBtnLastPressedTime = millis();
       wm_on_chann_down_press();
     }
-  }
-  else if (isChannDownBtnPressed && millis() - downBtnLastPressedTime >= DEBOUNCE_MS)
-  {
+  } else if (isChannDownBtnPressed && millis() - downBtnLastPressedTime >= DEBOUNCE_MS) {
     wm_on_chann_down_press();
     downBtnLastPressedTime = millis();
   }
@@ -316,16 +284,12 @@ void WiMonTerminal::wm_tick_buttons()
   // Handle Middle Button
   bool isChannMidBtnCurrentlyPressed = digitalRead(BTN_MID) == HIGH;
 
-  if (isChannMidBtnPressed != isChannMidBtnCurrentlyPressed)
-  {
-    if (isChannMidBtnCurrentlyPressed)
-    {
+  if (isChannMidBtnPressed != isChannMidBtnCurrentlyPressed) {
+    if (isChannMidBtnCurrentlyPressed) {
       midBtnLastPressedTime = millis();
       wm_on_chann_mid_press();
     }
-  }
-  else if (isChannMidBtnPressed && millis() - midBtnLastPressedTime >= DEBOUNCE_MS)
-  {
+  } else if (isChannMidBtnPressed && millis() - midBtnLastPressedTime >= DEBOUNCE_MS) {
     wm_on_chann_mid_press();
     midBtnLastPressedTime = millis();
   }
@@ -335,22 +299,28 @@ void WiMonTerminal::wm_tick_buttons()
 /*
   BlynkEdgent part
 */
-void BlynkEdgent::bl_write_data() // this is used to upload data spo2, hr, temp, channNum to blynk cloud
-{
-  Blynk.writeVirtual(SPO2_VP, spo2);
-  Blynk.writeVirtual(HR_VP, hr);
-  Blynk.writeVirtual(TEMP_VP, temp_C);
-  Blynk.writeVirtual(CHANN_NUM_VP, channelNum);
+void WiMonTerminal::bl_write_data() {
+  // Blynk.virtualWrite(SPO2_VP, WiMonTerminal::spo2);
+  // Blynk.virtualWrite(HR_VP, WiMonTerminal::hr);
+  // Blynk.virtualWrite(TEMP_VP, WiMonTerminal::temp_C);
 }
 
-BLYNK_WRITE(PATIENT_ID_VP)
-{
-  BlynkEdgent.patientID = param.asStr();
-  Serial.println("Receive PatientID from Blynk server:" + patientID);
-}
+// BLYNK_WRITE(PATIENT_ID_VP) {
+//   String value  = param.asStr();
+//   WiMonTerminal::patientID = value;
+// }
 
-BLYNK_WRITE(DOC_MESS_VP)
-{
-  BlynkEdgent.docMess = param.asStr();
-  Serial.println("Receive Doctor Message from Blynk server:" + docMess);
-}
+// BLYNK_WRITE(DOC_MESS_VP) {
+//   String value  = param.asStr();
+//   WiMonTerminal::docMess = value;
+//   Serial.println("Receive Doctor Message from Blynk server:" + value);
+// }
+
+/*
+  Google Sheet % Apps Script
+*/
+// void WimonTerminal::gs_fetch_patient_name() {
+// }
+
+// void WimonTerminal::gs_post_vital_record() {
+// }

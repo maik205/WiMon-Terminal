@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include <Arduino.h>
+
 #include "structs.h"
 #include "enums.h"
 #include "config.h"
@@ -8,8 +8,8 @@
 #include "screen.h"
 #include <cppQueue.h>
 #include "ui.h"
-#include "BlynkEdgent.h"
-class WiMonTerminal : public BlynkEdgent
+
+class WiMonTerminal
 {
 private:
     SensorConnectionState wmSensorState;
@@ -21,11 +21,8 @@ private:
     uint16_t lastTickMs;
 
     uint8_t channelNum;
-    String docMess = "";
-    String patientID = "";
-    uint8_t spo2 = 0;
-    uint16_t hr = 0;
-    uint16_t temp_C = 0;
+
+    
 
     cppQueue packetHistory;
     uint16_t lastRecievedPacket;
@@ -63,13 +60,21 @@ private:
     void wm_tick_buttons();
 
     // Google Sheet & Apps script
-    void wm_fetch_patient_name(); // fetch data of patient name from google sheet by his/her ID
+    // void gs_fetch_patient_name(); // fetch data of patient name from google sheet by his/her ID
+    // void gs_post_vital_record(); // this post the GDDataRecord to google sheet
 
-    // override the method from BlynkEdgent
-    void bl_write_data() override;
+    
 
 public:
     WiMonTerminal();
     void tick();
     void init();
+
+    // those below used to set value for docMess and patientID + record vitals + write patient's vitals to cloud (should be public static)
+    static String docMess;
+    static String patientID;
+    static uint8_t spo2;
+    static uint16_t hr;
+    static uint16_t temp_C;
+    static void bl_write_data();
 };
