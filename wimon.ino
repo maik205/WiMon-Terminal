@@ -10,18 +10,19 @@
 // #include "screen.h"
 // #include <lvgl.h>
 // #include <stdint.h>
-// #include <BlynkEdgent.h>
 #include "config.h"
 #include "WiMonTerminal.h"
 WiMonTerminal term;
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
-  //Log current LVGL library version to SM
+  // Log current LVGL library version to SM
   term.init();
   // Initialize SPI for the touch panel and set correct orientation
 }
 
-void loop() {
+void loop()
+{
   term.tick();
 }

@@ -14,9 +14,12 @@ enum StatusLEDColor {
 
 enum TerminalStatus {
   NORMAL,
-  RADIO_ERROR,
-  UNSTABLE_VITALS
+  RADIO_ERROR
+};
 
+enum WiFiConnectState {
+  CONNECTED,
+  DISCONNECTED
 };
 
 enum ValueStatus {
