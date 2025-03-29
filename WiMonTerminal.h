@@ -40,6 +40,7 @@ private:
   uint8_t numOfTries;
 
   uint32_t lastGSPostRequest;
+  uint32_t lastBlynkSendAlert;
 
   bool isChannUpBtnPressed;
   int upBtnLastPressedTime;
@@ -71,6 +72,9 @@ private:
   void gs_fetch_patient_name();  // fetch data of patient name from google sheet by his/her ID
   void gs_post_vitals_record();   // this post the GDDataRecord to google sheet
 
+  // Blynk notification set up
+  void bl_send_alert();
+
 
 public:
   WiMonTerminal();
@@ -80,6 +84,7 @@ public:
   // those below used to set value for docMess and patientID + record vitals + write patient's vitals to cloud (should be public static)
   static String docMess;
   static String patientID;
+  static String patientName;
   static uint8_t spo2;
   static uint16_t hr;
   static uint16_t temp_C;

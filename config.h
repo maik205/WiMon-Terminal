@@ -89,4 +89,5 @@
  */
 #define ENDPOINT_API_URL "https://script.google.com/macros/s/AKfycbzPYsTzYVwMQIgcyT1WPgY3ks1DxEUxH2bpzx8BvmE8FdDcEwPr9kK8yB-hkZNnqolX/exec"
 #define POST_INTERVAL 10000
+#define SEND_ALERT_INTERVAL 30000
 
