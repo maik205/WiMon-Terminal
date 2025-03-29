@@ -10,7 +10,6 @@
 // #include "screen.h"
 // #include <lvgl.h>
 // #include <stdint.h>
-// #include <BlynkEdgent.h>
 #include "config.h"
 #include "WiMonTerminal.h"
 WiMonTerminal term;

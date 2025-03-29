@@ -8,8 +8,8 @@ let response = await fetch(url, {
       body: JSON.stringify({
             patientID: "P0001",
             spo2: 100,
-            hr: 124,
-            temp: 35
+            hr: 124.3,
+            temp: 35.54
       }),
 });
 

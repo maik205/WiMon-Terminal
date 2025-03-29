@@ -45,14 +45,9 @@
 */
 #define BLYNK_TEMPLATE_ID "TMPL6Btwco48K"
 #define BLYNK_TEMPLATE_NAME "WiMonTerminal"
-#define BLYNK_FIRMWARE_TYPE "asdf"
-#define BLYNK_FIRMWARE_VERSION        "0.1.0"
-
-#define BLYNK_PRINT Serial
-#define APP_DEBUG
-
-#define USE_ESP32_DEV_MODULE
-
+#define BLYNK_AUTH_TOKEN "lQji4g4yIqq40X0TwiLramJ9MFUotz6n"
+#define WIFI_SSID "iPhone Khanh"
+#define WIFI_PASSWORD "01020403"
 // define blynk virtual pins to store data to cloud
 #define SPO2_VP V0
 #define TEMP_VP V1
@@ -92,5 +87,6 @@
 /**
  * Google Sheet record and fetch data
  */
-#define ENDPOINT_API_URL "https://script.google.com/macros/s/AKfycbwRju_1-TZwYdJXdi1UOXc9ZGmH4vR4lpXSgAqG9CFMkDPGmRDuGOGgR3WSXz9sPqdu/exec"
+#define ENDPOINT_API_URL "https://script.google.com/macros/s/AKfycbzPYsTzYVwMQIgcyT1WPgY3ks1DxEUxH2bpzx8BvmE8FdDcEwPr9kK8yB-hkZNnqolX/exec"
+#define POST_INTERVAL 10000
 
